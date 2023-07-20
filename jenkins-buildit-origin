@@ -1,0 +1,47 @@
+                stage('Build and Push Image') {
+
+                    // git 'https://github.com/jenkinsci/kubernetes-plugin.git'
+
+                    container('buildkit') {
+
+                            sh "echo ${ENVIRONMENT}"
+
+                            sh "ls -al"
+
+                            sh "cat Dockerfile"
+
+                            def WHEREAMI=sh(script: "pwd", returnStdout: true).trim()
+
+                            script{ //start script
+
+                                sh """
+
+                                set +x
+
+                                echo "get image name to push ${DOCKER_IMAGE_NAME_PERFIX}:${DOCKER_IMAGE_NAME_TAG_AFTER_BUILD}"
+
+                                chmod -R 777 /etc/ssl/certs
+
+                                cp ca.crt /usr/local/share/ca-certificates/ca.crt
+
+                                cp ca.crt /etc/ssl/certs/ca.crt
+
+                                update-ca-certificates
+
+                                echo ${WHEREAMI}
+
+                                mkdir -p ~/.docker/
+
+                                cp config.json ~/.docker/config.json
+
+                                time buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. --output type=image,name=${DOCKER_IMAGE_NAME_PERFIX}:${DOCKER_IMAGE_NAME_TAG_AFTER_BUILD},push=true
+
+                                set -x
+
+                                """
+
+                            } //end script
+
+                    }
+
+                }
